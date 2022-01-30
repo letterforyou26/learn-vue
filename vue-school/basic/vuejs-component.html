@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue.js components fundamentals</title>
+</head>
+<body>
+    <div id="app">
+        <h1>Vue.js components fundamentals</h1>
+        <plan-picker></plan-picker>
+    </div>
+
+    <script type="text/x-template" id="plan-picker-template">
+        <div class="plans">
+            <plan-component v-for="plan in plans" :name="plan" :key="plan"></plan-component>
+        </div>
+    </script>
+
+    <script type="text/x-template" id="plan-template">
+        <div class="plan">
+            <div class="description">
+                <div class="title">
+                    {{ name }}
+                </div>
+            </div>
+        </div>
+    </script>
+
+    <script src="http://unpkg.com/vue"></script>
+    <script src="vuejs-conponent.js"></script>
+</body>
+</html>

@@ -1,0 +1,650 @@
+##########   ESSENTIALS   ##########
+
+### INTRODUCTION
+
+# Là Progressive Framework
+  - Full-featured framework cung cấp mọi thứ để xây dựng app
+  - Progressive framework chia nhỏ các thành phần để lựa chọn: vuex, vue-router
+
+
+
+### VUE INSTANCE
+
+# Create Vue instance
+          var vm = new Vue({ // options })
+
+# Reactivity system
+  - Data thêm vào khi tạo ra vue object sẽ thêm vào reactivity system, còn các data thêm vào sau
+    đó sẽ không.
+  - Dùng Object.freeze(obj) để ngăn react tới object được chọn
+
+# Properties & methods
+  - vm.$data
+  - vm.$el 
+  - vm.$watch('data_selected', function(newValue, oldValue) {
+    // this callback will be called when vm.data_selected is changed
+  })
+
+# Lifecycle hooks
+          new Vue({
+            data: {
+              a: 1
+            },
+            created: function() {
+              // ...
+            }
+          })
+  - created, mounted, updated, destroyed, beforeCreate, ...
+  - không dùng arrow function hoặc callback vì chúng không có keyword this, nó lookup this của parent
+
+# Interpolation - nội suy
+          <span v-once> {{ message.reverse }}</span>
+  - dùng v-once để không cập nhật lại message đã hiển thị khi data.message thay đổi
+
+# Attribute
+          <div v-bind:id="dynamicId></div>
+          <div :id="dynamicId></div>
+
+# Directive
+          <a v-on:click="doSomething"> ... </a>
+          <a @click="doSomething"> ... </a>
+          <a @[eventName]="doSomething"> ... </a>
+  - dynamic argument          // 2.6.0+
+          <a :[attributeName]="url"> ... </a>
+
+# Modifier
+          <form @submit.prevent="onSubmit"> ... </form>
+  - chỉ rõ 1 directive ràng buộc theo 1 cách đặc biệt nào đó
+
+
+
+### Computed properties and Watcher
+  - computed khác method ở chỗ nó được cached lại dựa trên dependency và thay đổi chỉ khi 
+    data nó bind vào thay đổi
+          computed: {
+            now: function () {
+              return Date.now()
+            }
+          }
+  - computed trên sẽ không bh thay đổi giá trị vì Date.now() không phải reactivity dependency
+
+  # Computed setter
+          computed: {
+            fullname () {
+              get: function () {
+                return this.firstName + ' ' + this.lastName
+              },
+              set: function (newValue) {
+                var names = newValue.split(' ')
+                this.firstName = names[0]
+                this.lastName = names[names.length - 1]
+              }
+            }
+          }
+
+  # Watcher
+          watch: {
+            data1: function() {},
+            data2: function() {}
+          }
+
+
+
+### Class and style binding
+          <div :class="{ active: isActive, a ? b:c }"></div>
+
+          <div :style="{ color: activeColor, fontSize: fontSize + 'px' }"></div>
+          
+          <div :style="styleObject"></div>
+          data: {
+            styleObject: {
+              color: 'red',
+              fontSize: '13px'
+            }
+          }
+
+
+
+### Conditional rendering
+  # if-else
+          <h1 v-if="awesome">Vue is awesome!</h1>
+          <h1 v-else>Oh no 😢</h1>
+
+  # control reuseable element with key
+          <template v-if="loginType === 'username'">
+            <label>Username</label>
+            <input placeholder="Enter your username" key="username-input">
+          </template>
+          <template v-else>
+            <label>Email</label>
+            <input placeholder="Enter your email address" key="email-input">
+          </template>
+    - label vẫn reuse vì nó không có thuộc tính key
+  
+  # v-show
+          <h1 v-show="ok">Hello!</h1>
+
+
+
+#### List rendering
+  # v-for
+          <li v-for="n in evenNumbers">{{ n }}</li>
+
+          data: {
+            numbers: [ 1, 2, 3, 4, 5 ]
+          },
+          computed: {
+            evenNumbers: function () {
+              return this.numbers.filter(function (number) {
+                return number % 2 === 0
+              })
+            }
+          }
+    - inside v-for blocks we have full access to parent scope properties
+    - v-for also supports an optional second argument for the index of the current item.
+
+  # v-for with template
+    - render a block with multiple elements
+
+  # inline-patch
+    - khi thứ tự data items thay đổi, thay vì di chuyển DOM phù hợp với thứ tự items,
+      Vue sẽ patch mỗi phần tử tại chỗ
+    - để Vue có thể nhận ra node và tái sử dụng nó thì cần cung cấp thuộc tính key, thường là id
+
+  # array change detection
+    - Vue wrap các mutation methods để observe: push, pop, shift, unshift, splice, sort, reverse
+
+  # v-for with v-if
+    - v-for có mức ưu tiên cao hơn
+          <li v-for="todo in todos" v-if="!todo.isComplete">
+            {{ todo }}
+          </li>
+
+
+
+### Events
+          <button v-on:click="say('hello', $event)">Add 1</button>
+  - params $event theo sau để lấy DOM ban đầu
+  # event modifiers:
+      .stop, .prevent, .capture, .self, .once, .passive
+          <!-- the click event's propagation will be stopped -->
+          <a v-on:click.stop="doThis"></a>
+
+          <!-- the submit event will no longer reload the page -->
+          <form v-on:submit.prevent="onSubmit"></form>
+
+          <!-- modifiers can be chained -->
+          <a v-on:click.stop.prevent="doThat"></a>
+
+          <!-- just the modifier -->
+          <form v-on:submit.prevent></form>
+
+          <!-- use capture mode when adding the event listener -->
+          <!-- i.e. an event targeting an inner element is handled here before being handled by that element -->
+          <div v-on:click.capture="doThis">...</div>
+
+          <!-- only trigger handler if event.target is the element itself -->
+          <!-- i.e. not from a child element -->
+          <div v-on:click.self="doThat">...</div> 
+
+  # key modifiers
+          <input v-on:keyup.enter="submit">   // only call `vm.submit()` when the `key` is `Enter`
+          
+          <!-- Alt + C -->
+          <input v-on:keyup.alt.67="clear">
+
+          <!-- this will fire even if Alt or Shift is also pressed -->
+          <button v-on:click.ctrl="onClick">A</button>
+
+          <!-- this will only fire when Ctrl and no other keys are pressed -->
+          <button v-on:click.ctrl.exact="onCtrlClick">A</button>
+
+          <!-- this will only fire when no system modifiers are pressed -->
+          <button v-on:click.exact="onClick">A</button>
+
+
+
+### Form input binding
+  - v-model bỏ qua giá trị initial, selected, checked của input. Nó luôn tin tưởng data của 
+    vue instance là nguồn tin cậy duy nhất => nên khai báo giá trị khởi tạo trong option data
+    của component
+          <!-- `picked` is a string "a" when checked -->
+          <input type="radio" v-model="picked" value="a">
+
+          <!-- `toggle` is either true or false -->
+          <input type="checkbox" v-model="toggle">
+
+          <!-- `selected` is a string "abc" when the first option is selected -->
+          <select v-model="selected">
+            <option value="abc">ABC</option>
+          </select>
+  - nếu pick nhiều checkbox có cùng model thì data sẽ được insert thêm vào
+  
+  # modifiers cho v-model
+    - .lazy: sync input with data after change event instead of input event
+    - .number: auto typecast to number
+    - .trim
+
+
+
+### Component basic
+  - khai báo toàn cục component:
+          Vue.component('comp_name', { // data, template, ... })  
+  - những component được tạo ra như ở trên có thể tái sử dụng như 1 custem element trong 
+    phần tử vue root (được tạo ra bởi new Vue)  
+  
+  *** data option phải là một hàm để mỗi instance của nó có những data độc lập, nếu không
+      thì data của các instance sẽ chia sẻ với nhau
+
+  # pass data to child component with props
+          Vue.component('blog-post', {
+            props: ['title'],
+            template: '<h3>{{ title }}</h3>'
+          })
+
+          <blog-post title="My journey with Vue"></blog-post>
+          <blog-post :title="post.title"></blog-post>
+
+  # listen to child component events
+          <blog-post
+            ...
+            v-on:enlarge-text="postFontSize += $event"    // hoặc có thể gọi hàm
+          ></blog-post>
+
+          <button v-on:click="$emit('enlarge-text', 1)">
+            Enlarge text
+          </button>
+
+  # v-model with component's props
+          Vue.component('custom-input', {
+            props: ['value'],
+            template: `
+              <input
+                v-bind:value="value"
+                v-on:input="$emit('input', $event.target.value)"
+              >
+            `
+          })
+
+  # slot
+          Vue.component('alert-box', {
+            template: `
+              <div class="demo-alert-box">
+                <strong>Error!</strong>
+                <slot></slot>
+              </div>
+            `
+          })
+
+  # dynamic component
+          <!-- Component changes when currentTabComponent changes -->
+          <component v-bind:is="currentTabComponent"></component>
+
+
+
+##########   COMPONENTS IN-DEPTH   ##########
+
+### Registration
+  - tên component: kebab-case-name, PascalCaseName
+  - đăng kí cục bộ: 
+          var comp = { /* ... */ }
+          
+          new Vue({
+            el: '#app',
+            components: {
+              'comp': comp
+              // shorthand:
+              comp
+            }
+          })
+
+### Props
+  - tên props: kebab-case-name, camelCaseName
+  - tuy nhiên, các thuộc tính html phải k viết hoa nên lúc bind thì phải về dạng kebab
+  - static props: không có :, còn dynamic thì có
+
+          Vue.component('my-component', {
+          props: {
+            propA: {
+              type: Number,
+              default: initA()
+            },
+
+  # one-way data follow
+    - khi data ở parent update, các data ở component con sẽ refresh lại. Nhưng ngược lại thì không
+    - vì vậy không nên mutate props
+
+  # trường hợp mutate props
+    - khi child component nhận props là giá trị khởi tạo và muốn xài nó như 1 data thay đổi sau đó
+      cách xử lý: tạo 1 biến data mới và gán giá trị khởi tạo của nó bằng props truyền vào
+    - khi props truyền vào cần xử lý xong mới sử dụng
+      cách xử lý: tạo computed property
+
+  # custom event
+    - vì html là case-insensitivity và nó chuyển hết thành lowercase nên event nên là kebab-case
+    - value của checkbox và radio btn được sử dụng trong mục đích khác nên phải dùng option model
+      để không bị xung đột:
+          Vue.component('base-checkbox', {
+            model: {
+              prop: 'checked',
+              event: 'change'
+            },
+            props: {
+              checked: Boolean
+            },
+            template: `
+              <input
+                type="checkbox"
+                v-bind:checked="checked"
+                v-on:change="$emit('change', $event.target.checked)"
+              >
+            `
+          })
+
+          <base-checkbox v-model="passToChecked"></base-checkbox>
+
+
+
+### Slot
+          <button type="submit">
+            <slot>Submit</slot>
+          </button>
+
+          <submit-button></submit-button>       --> Submit
+          <submit-button>Save</submit-button>   --> Save
+
+  # slot name
+          // component base-layout
+          <div class="container">
+            <slot name="header"></slot>
+            <slot></slot>
+            <slot name="footer"></slot>
+          </div>
+
+          <base-layout>
+            <template v-slot:header>
+              <h1>Here might be a page title</h1>
+            </template>
+
+            <p>A paragraph for the main content.</p>
+            <p>And another one.</p>
+
+            <template v-slot:footer>
+              <p>Here's some contact info</p>
+            </template>
+          </base-layout>
+
+    - có thể chỉ định rõ default slot:
+          <template v-slot:default>
+            <p>A paragraph for the main content.</p>
+            <p>And another one.</p>
+          </template>
+
+  # scoped slot
+    - để truy cập data ở component con truyền vào slot:
+          <span>
+            <slot v-bind:user="user">
+              {{ user.lastName }}
+            </slot>
+          </span>
+
+          <current-user>
+            <template v-slot:header="slotProps">
+              {{ slotProps.user.firstName }}
+            </template>
+          </current-user>
+
+
+
+### Dynamic & async component
+  # dynamic component 
+          <keep-alive>
+            <component v-bind:is="currentTabComponent"></component>
+          </keep-alive>
+    - dùng keep-alive element để cached lại và sẽ không re-render
+  
+  # async component
+    - define component as a factory function that async resolve component definition
+    - Vue only trigger factory function when component need to be rendered and will cached 
+      the result for future re-render
+          Vue.component('async-example', function (resolve, reject) {
+            setTimeout(function () {
+              // Pass the component definition to the resolve callback
+              resolve({
+                template: '<div>I am async!</div>'
+              })
+            }, 1000)
+          })
+
+
+
+##########   REUSABILITY & COMPOSITION   ##########
+
+### Mixin
+  - chứa các options của một component mà có thể cho các component khác kế thừa và mixed options
+          var myMixin = {
+            created: function () {
+              this.hello()
+            },
+            methods: {
+              hello: function () {
+                console.log('hello from mixin!')
+              }
+            }
+          }
+
+          new Vue({
+            mixins: [myMixin],
+            ...
+          })
+  
+  # conflict
+    - data, methods, components, directives: của component sẽ được ưu tiên
+    - hook: trộn hook của cả mixin và component vào 1 mảng rồi gọi theo thứ tự mixin trước,
+            của component sau
+  
+  # Vue.mixin({ ... }) để khai báo mixin toàn cục
+
+### Custom directive
+
+
+
+###########   CONVENTION   ##########
+
+  - tên component phải đầy đủ, rõ ràng, là multi-word, nên là kebab-case hoặc PascalCase
+  - tên các component nền tảng: BaseButton, AppButton, VButton
+  - các component chỉ khởi tạo 1 lần mỗi trang (nên không có props truyền vào): TheHeading, TheSideBar
+  - tên các component cha con: TodoList, TodoListItem, TodoListItemButton
+  - tên component bắt đầu bằng những từ chung nhất: SearchButtonClear, SearchButtonRun, SearchInputQuery
+  - component trong single-file component: <MyComponent></MyComponent>
+  - component trong DOM template: <my-component></my-component>
+
+  - data phải là function
+  - tên prop dạng camelCase, kebab-case khi gọi trong template
+          props: {
+            greetingText: String
+          }
+          <WelcomeMessage greeting-text="hi"/>
+  - props phải được định nghĩa chi tiết
+          props: {
+            status: {
+              type: String,
+              required: true,
+              validator: function (value) {
+                return [
+                  'syncing',
+                  'synced',
+                  'version-conflict',
+                  'error'
+                ].indexOf(value) !== -1
+              }
+            }
+          }
+
+  - phần tử có nhiều thuộc tính viết thành nhiều dòng, mỗi dòng là 1 thuộc tính
+          <img
+            src="https://vuejs.org/images/logo.png"
+            alt="Vue Logo"
+          >
+
+  - luôn dùng key với v-for
+  - không dùng v-if với v-for
+  - tất cả các css của component trừ App đều phải scoped
+  - luôn dùng prefix $_ cho các private properties
+          var myGreatMixin = {
+            methods: {
+              $_myGreatMixin_update: function () {}
+            }
+          }
+
+  - before guards
+          {
+            path: "/destination/:slug",
+            beforeEnter: (to, from, next) => {
+              const exists = store.destinations.find(
+                destination => destination.slug === to.params.slug
+              )
+              if (exists) {
+                next()
+              } else {
+                next({ name: "notFound" })
+              }
+            }
+
+
+
+###########   VUE ROUTER   ##########
+
+  - router-link chặn clickEvent
+  - lazy load routes:
+          {
+            path: "/jamaica",
+            name: "jamaica",
+            component: () =>
+              import(/* webpackChunkName: "brazil" */ "../views/Jamaica.vue"),
+          }
+
+  - webpackChunkName show tên file js được load ở devtool/js
+  - có thể router-link bằng name được define trong route:
+          <router-link :to="{ name: 'DestinationDetails' }" />
+
+  - load lại content khi path thay đổi (dynamic path)
+          <router-view :key="$route.path" />
+
+  - khai báo props tại routes để pass params as props, không cần khởi tạo biến trong data nữa
+          {
+            path: "/details/:slug",
+            name: "details",
+            props: true,
+            component: () =>
+              import(/* webpackChunkName: "details" */ "../views/Details.vue"),
+          }
+
+          <router-link :to="{ name: 'details', params: { slug: slug } }">
+
+  - nested route
+          {
+            path: "/destination/:slug",
+            children: [
+              {
+                path: ":experienceSlug",
+              }
+            ]
+          }
+
+
+###########   VUEX   ##########
+
+# Create
+          const store = new Vuex.Store({
+            state: {},          // data
+            mutations: {},      // commit state
+            actions: {},        // update state by call mutations
+            getters: {}         // access state
+          })
+
+
+
+##########   NUXT   ##########
+
+# Installation
+  - yarn create nuxt-app <project-name>
+  - npx create-nuxt-app <project-name>
+  - npm init nuxt-app <project-name>
+
+# Routing
+  - Nuxt tự động sinh vue-router config, dựa trên các file Vue trong folder pages
+          pages/
+          --| user/
+          -----| index.vue
+          -----| one.vue
+          -----| _id.vue
+          --| index.vue
+
+          router: {
+            routes: [
+              {
+                name: 'index',
+                path: '/',
+                component: 'pages/index.vue'
+              },
+              {
+                name: 'user',
+                path: '/user',
+                component: 'pages/user/index.vue'
+              },
+              {
+                name: 'user-one',
+                path: '/user/one',
+                component: 'pages/user/one.vue'
+              },
+              {
+                name: 'user-id',
+                path: '/user/:id?',
+                component: 'pages/user/_id.vue'
+              }
+            ]
+          }
+
+  - this.$route.params.{parameterName}
+  - nested routes:
+          pages/
+          --| users/
+          -----| _id.vue
+          -----| index.vue
+          --| users.vue
+
+          router: {
+            routes: [
+              {
+                path: '/users',
+                component: 'pages/users.vue',
+                children: [
+                  {
+                    path: '',
+                    component: 'pages/users/index.vue',
+                    name: 'users'
+                  },
+                  {
+                    path: ':id',
+                    component: 'pages/users/_id.vue',
+                    name: 'users-id'
+                  }
+                ]
+              }
+            ]
+          }
+
+# Layouts
+  - tạo các file layouts trong folder layouts
+          <template>
+            <Nuxt />
+          </template>
+
+  - config layout ở pages
+          export default {
+            layout: 'blog'
+            // page component definitions
+          }
+
+  - layout đặc biệt: layouts/error.vue        

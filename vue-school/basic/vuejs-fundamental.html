@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="http://unpkg.com/vue"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <style>
+        .strikeout {
+            text-decoration: line-through;
+        }
+        .priority {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <div id="shopping-list">
+        <div class="header">
+            <h1> {{ header.toLocaleUpperCase() }}</h1>
+            <button v-if="state === 'default'" class="btn btn-primary" @click="changeState('add')">Add Item</button>
+            <button v-else class="btn btn-cancel" @click="changeState('default')">Cancel</button>
+        </div>
+        <div v-if="state === 'add'" class="add-item-form">
+            <input type="text" v-model="newItem" placeholder="Add an item" @keyup.enter="saveItem">
+            <p>{{ characterCount }}/200</p>
+            <button class="btn btn-primary" :disabled="newItem.length === 0" @click="saveItem">Add Item</button>
+        </div>
+        <ul>
+            <li v-for="item in reverseItems" :class="{strikeout: item.purchased, priority: item.priority}" @click="togglePurchased(item)">{{ item.label }}</li>
+        </ul>
+        <p v-if="items.length === 0">Nothing to display</p>
+    </div>
+    <script>
+        var shoppingList = new Vue({
+            el: '#shopping-list',
+            data: {
+                state: 'default',
+                header: 'Shopping list app',
+                newItem: '',
+                items: [
+                    {
+                        label: '10 candies',
+                        purchased: false,
+                        priority: true
+                    },
+                    {
+                        label: '2 cakes',
+                        purchased: true,
+                        priority: true
+                    },
+                    {
+                        label: '5 snacks',
+                        purchased: false,
+                        priority: false
+                    },
+                ],
+            },
+            computed: {
+                characterCount() {
+                    return this.newItem.length;
+                },
+                reverseItems() {
+                    return this.items.slice(0).reverse();
+                }
+            },
+            methods: {
+                saveItem: function() {
+                    this.items.push({
+                        label: this.newItem,
+                        purchased: false
+                    });
+                    this.newItem = '';
+                },
+                changeState: function(newState) {
+                    this.state = newState;
+                    this.newItem = '';
+                },
+                togglePurchased: function(item) {
+                    item.purchased = !item.purchased;
+                }
+            }
+        });
+    </script>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+</body>
+</html>
