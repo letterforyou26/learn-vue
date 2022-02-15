@@ -647,4 +647,13 @@
             // page component definitions
           }
 
-  - layout đặc biệt: layouts/error.vue        
+  - layout đặc biệt: layouts/error.vue
+
+# fetch data
+  async fetch () {
+    this.reviews = await fetch(
+      'https://randomuser.me/api/?results=5'
+    ).then(res => res.json())
+  }
+
+  {{ $fetchState }}       => show pending, error of api
